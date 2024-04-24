@@ -1,0 +1,232 @@
+{
+  "version": "0.1.0",
+  "name": "anchor_message_payment",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "dappCreator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createMessageRecipientUser",
+      "accounts": [
+        {
+          "name": "userDetails",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "profileInfo",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "sendMessage",
+      "accounts": [
+        {
+          "name": "messageSender",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "messageRecipientPendingAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userDetails",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "feeAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "messageAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "globalState",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "messageUuid",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "name": "amountOfLamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "markMessageAsRead",
+      "accounts": [
+        {
+          "name": "messageRecipient",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "messageAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "recipientPending",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "totalAmountSolTransacted",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "sender",
+            "type": "publicKey"
+          },
+          {
+            "name": "recipient",
+            "type": "publicKey"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          },
+          {
+            "name": "read",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageUUID",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "messageUuid",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserDetails",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "userUuid",
+            "type": "string"
+          },
+          {
+            "name": "authority",
+            "type": "publicKey"
+          },
+          {
+            "name": "messageNum",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RecipientPendingAccount",
+      "type": {
+        "kind": "struct",
+        "fields": []
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedAccess",
+      "msg": "Unauthorized access attempt."
+    },
+    {
+      "code": 6001,
+      "name": "MessageAlreadyRead",
+      "msg": "The message has already been read."
+    }
+  ],
+  "metadata": {
+    "address": "CsumFKj4paZ66y3g4E1CkFqVK57H9igGKZ1oGCc2pPyV"
+  }
+}
