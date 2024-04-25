@@ -6,35 +6,35 @@ Anchor Message Payment is an application built with Next.js, TypeScript, and Rea
 
 Features
 
-Account creation for receiving messages and SOL.
+- Account creation for receiving messages and SOL.
 Ability to send messages with SOL attached.
 Mark messages as "read" and claim 85% of the SOL.
 Fee management with 15% of SOL transferred to the app owner.
 
 Technologies Used
 
-Next.js
-TypeScript
-React
-Solana Blockchain
-Anchor Framework
+- Next.js
+- TypeScript
+- React
+- Solana Blockchain
+- Anchor Framework
 
 Environment Setup
 
-Before running the project, you need to set up the environment variables. Copy the template file $.env to .env and fill in the necessary values:
+- Before running the project, you need to set up the environment variables. Copy the template file $.env to .env and fill in the necessary values:
 
-FEE_ACCOUNT_PUBKEY=<your_pubkey_here>
+- FEE_ACCOUNT_PUBKEY=<your_pubkey_here>
 
-Replace <your_pubkey_here> with the public key where you want the fees to be sent. This public key will be used within the application to direct the transaction fees appropriately.
+- Replace <your_pubkey_here> with the public key where you want the fees to be sent. This public key will be used within the application to direct the transaction fees appropriately.
 
 
 
 Installation
 
-Clone the repo
-start local solana validator or choose other network
-npm install
+- Clone the repo
+- start local solana validator or choose other network
+- npm install
 - Install dependencies
-anchor deploy
+- anchor deploy
 - Deploy the anchor contract
-npm run dev
+- npm run dev
