@@ -2,7 +2,6 @@ import Link from "next/link";
 import React, { FC, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { SelectAndConnectWalletButton } from "@/components/selectAndConnectWalletButton";
 import SendUserMessage from "../../../src/components/SendMessage";
 
 import CreateProfileComponent from "@/components/CreateProfileComponent";
