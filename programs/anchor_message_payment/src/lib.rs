@@ -1,12 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::system_instruction;
 use anchor_lang::solana_program::program::invoke;
+use dotenv::dotenv;
+use std::env;
 
 declare_id!("CsumFKj4paZ66y3g4E1CkFqVK57H9igGKZ1oGCc2pPyV");
-
-// const FEE_ACCOUNT_PUBKEY: &str = "57wSCd1xLp1v9NyfJtaV2qyv3hxsU7JHnjDNyMcwsLTC";
-
-const AUTH_ACCOUNT_PUBKEY: &str = "hhquxZByZ4BMdQFScXexRrY7GUb7emAF4egg7UACxPf";
 
 #[program]
 pub mod anchor_message_payment {
@@ -32,9 +30,11 @@ pub mod anchor_message_payment {
         ctx: Context<MessageRecipientUserAccount>,
         profile_info: String,
     ) -> ProgramResult {
+        dotenv().ok();
         let content_creator_account = &mut ctx.accounts.user_details;
         content_creator_account.user_uuid = profile_info;
-        content_creator_account.authority = Pubkey::from_str(AUTH_ACCOUNT_PUBKEY).unwrap();
+        let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+        content_creator_account.authority = Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey");
         content_creator_account.message_num = 0;
         msg!("This is the uuid: {:?}", content_creator_account.user_uuid);
         msg!("This is the key: {:?}", content_creator_account.key().to_string());
