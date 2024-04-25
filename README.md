@@ -7,9 +7,9 @@ Anchor Message Payment is an application built with Next.js, TypeScript, and Rea
 Features
 
 - Account creation for receiving messages and SOL.
-Ability to send messages with SOL attached.
-Mark messages as "read" and claim 85% of the SOL.
-Fee management with 15% of SOL transferred to the app owner.
+- Ability to send messages with SOL attached.
+- Mark messages as "read" and claim 85% of the SOL.
+- Fee management with 15% of SOL transferred to the app owner.
 
 Technologies Used
 
