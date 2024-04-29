@@ -1,14 +1,15 @@
+
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::system_instruction;
 use anchor_lang::solana_program::program::invoke;
 use dotenv::dotenv;
-use std::env;
 
 declare_id!("CsumFKj4paZ66y3g4E1CkFqVK57H9igGKZ1oGCc2pPyV");
 
 #[program]
 pub mod anchor_message_payment {
-    use std::str::FromStr;
+
+    use std::{env, str::FromStr};
 
     use anchor_lang::solana_program::entrypoint::ProgramResult;
 
@@ -33,24 +34,23 @@ pub mod anchor_message_payment {
         dotenv().ok();
         let content_creator_account = &mut ctx.accounts.user_details;
         content_creator_account.user_uuid = profile_info;
-        let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
-        content_creator_account.authority = Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey");
+        // let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+        // content_creator_account.authority = Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey");
+        content_creator_account.authority = ctx.accounts.user.key();
         content_creator_account.message_num = 0;
-        msg!("This is the uuid: {:?}", content_creator_account.user_uuid);
-        msg!("This is the key: {:?}", content_creator_account.key().to_string());
         Ok(())
     }
 
 
     // This function:
-    //  - 
+    //  - Sends a message from a non user to a user who has created an account
 
     pub fn send_message(
     ctx: Context<SendMessage>,
     message_uuid: String,
     message: String,
     amount_of_lamports: u64,
-    ) -> ProgramResult {
+    ) -> Result<()> {
 
     let amount = amount_of_lamports;
     msg!("The amount variable is set to {:?}", amount);
@@ -59,14 +59,21 @@ pub mod anchor_message_payment {
     let to_recipient_pending = amount - fee;
     msg!("The to_recipient_pending variable is set to {:?}", to_recipient_pending);
 
+    // Fee account stuff
+    let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+
+    // Check to ensure the fee_account has the correct pubkey and was not changed on client side
+    require!(
+        ctx.accounts.fee_account.key() == Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey"),
+        CustomError::IncorrectFeeAccount     
+    );
+
     // Create Fee Transfer Instructions fee to the dApp's fee account using the hardcoded public key
     let transfer_fee_instruction = system_instruction::transfer(
         &ctx.accounts.message_sender.key(),
         &ctx.accounts.fee_account.key(),
         fee,
     );
-
-    // fee_account account_info
 
     // Preform Transfer of fee to the dApp's fee account
     invoke(
@@ -237,4 +244,6 @@ pub enum CustomError {
     UnauthorizedAccess,
     #[msg("The message has already been read.")]
     MessageAlreadyRead,
+    #[msg("Incorrect fee account PubKey.")]
+    IncorrectFeeAccount,
 }
