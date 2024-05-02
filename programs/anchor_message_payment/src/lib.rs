@@ -15,18 +15,16 @@ pub mod anchor_message_payment {
 
     use super::*;
 
-    // Setup / Constructor
-    // Things needed for initial state
-    // Called to "set everything up" before users start to use the application
-    // TODO - need to ensure only i the controller of the program can call this functions
+    // This function
+    // sets up initial state and set global_state value to 0
     pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
         let global_state = &mut ctx.accounts.global_state;
         global_state.total_amount_sol_transacted = 0;
         Ok(())
     }
 
-    // This function"
-    // - 
+    // This function
+    // - Creates user_details account and set values
     pub fn create_message_recipient_user(
         ctx: Context<MessageRecipientUserAccount>,
         profile_info: String,
@@ -34,8 +32,6 @@ pub mod anchor_message_payment {
         dotenv().ok();
         let content_creator_account = &mut ctx.accounts.user_details;
         content_creator_account.user_uuid = profile_info;
-        // let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
-        // content_creator_account.authority = Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey");
         content_creator_account.authority = ctx.accounts.user.key();
         content_creator_account.message_num = 0;
         Ok(())
@@ -44,6 +40,9 @@ pub mod anchor_message_payment {
 
     // This function:
     //  - Sends a message from a non user to a user who has created an account
+    //    calculates the fee and net amount to pay user
+    //    creates message account and sets correct values
+    //    iterates global state values
 
     pub fn send_message(
     ctx: Context<SendMessage>,
@@ -60,7 +59,10 @@ pub mod anchor_message_payment {
     msg!("The to_recipient_pending variable is set to {:?}", to_recipient_pending);
 
     // Fee account stuff
-    let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+    // let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+    // fee_account_pubkey can be set in the env file but the "send_message" test in the test file will fail
+    let fee_account_pubkey = "YOUR FEE ACCOUNT PUBKEY";
+    // hard coding like above prevents the test failure
 
     // Check to ensure the fee_account has the correct pubkey and was not changed on client side
     require!(
@@ -82,7 +84,7 @@ pub mod anchor_message_payment {
             ctx.accounts.message_sender.to_account_info().clone(),
             ctx.accounts.fee_account.to_account_info().clone(),
         ],
-    )?;
+    ).map_err(|_| CustomError::FeeTransferFailed)?;
 
     // recipient_pending
 
@@ -97,7 +99,7 @@ pub mod anchor_message_payment {
             ctx.accounts.message_sender.to_account_info().clone(),
             ctx.accounts.message_recipient_pending_account.to_account_info().clone(),
         ],
-    )?;
+    ).map_err(|_| CustomError::RecipientTransferFailed)?;
 
     // Save the message with the uuid and payment details
     let message_account = &mut ctx.accounts.message_account;
@@ -121,7 +123,9 @@ pub mod anchor_message_payment {
 
 
     // This function: 
-    //  - 
+    //  - Allows a message recipient to mark as message as read
+    //  - transfers the funds from the recipient_pending to the
+    //  - users wallet
 
     pub fn mark_message_as_read(
         ctx: Context<MarkMessageAsRead>,
@@ -136,8 +140,6 @@ pub mod anchor_message_payment {
             CustomError::UnauthorizedAccess
         );
 
-        // confirm something about the pending account checking the owner = the key sining for the transaction
-
         // Check if the message has already been marked as read
         require!(
             !message_account.read,
@@ -151,8 +153,6 @@ pub mod anchor_message_payment {
 
         // Mark the message as read
         message_account.read = true.to_owned();
-        message_account.message = "This message has been read".to_string();
-        msg!("The message_account.read at the end of the function is: {:?}", message_account.read);
         Ok(())
     }
 
@@ -170,6 +170,24 @@ pub struct Initialize<'info> {
 #[account]
 pub struct GlobalState {
     total_amount_sol_transacted: u64, // track total amount of sol transacted through the service
+}
+
+#[derive(Accounts)]
+#[instruction(profile_info: String)]
+pub struct MessageRecipientUserAccount<'info> {
+    // May need to adjust the size
+    #[account(init, payer = user, space = 8 + 256, seeds = [b"user_details", profile_info.as_bytes()], bump)]
+    pub user_details: Account<'info, UserDetails>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct UserDetails {
+    pub user_uuid: String,
+    pub authority: Pubkey,
+    pub message_num: u64,
 }
 
 #[derive(Accounts)]
@@ -202,27 +220,10 @@ pub struct MessageAccount {
     pub message: String,
 }
 
+// TODO - Delete this
 #[account]
 pub struct MessageUUID {
     pub message_uuid: String
-}
-
-#[derive(Accounts)]
-#[instruction(profile_info: String)]
-pub struct MessageRecipientUserAccount<'info> {
-    // May need to adjust the size
-    #[account(init, payer = user, space = 8 + 256, seeds = [b"user_details", profile_info.as_bytes()], bump)]
-    pub user_details: Account<'info, UserDetails>,
-    #[account(mut)]
-    pub user: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
-
-#[account]
-pub struct UserDetails {
-    pub user_uuid: String,
-    pub authority: Pubkey,
-    pub message_num: u64,
 }
 
 #[derive(Accounts)]
@@ -246,4 +247,9 @@ pub enum CustomError {
     MessageAlreadyRead,
     #[msg("Incorrect fee account PubKey.")]
     IncorrectFeeAccount,
+    #[msg("Failed to transfer fee to the dApp's fee account.")]
+    FeeTransferFailed,    
+    #[msg("Failed to transfer remaining amount to the recipient's pending account.")]
+    RecipientTransferFailed,
 }
+
