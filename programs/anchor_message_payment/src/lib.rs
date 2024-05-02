@@ -1,7 +1,6 @@
-
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::system_instruction;
 use anchor_lang::solana_program::program::invoke;
+use anchor_lang::solana_program::system_instruction;
 use dotenv::dotenv;
 
 declare_id!("CsumFKj4paZ66y3g4E1CkFqVK57H9igGKZ1oGCc2pPyV");
@@ -29,14 +28,12 @@ pub mod anchor_message_payment {
         ctx: Context<MessageRecipientUserAccount>,
         profile_info: String,
     ) -> ProgramResult {
-        dotenv().ok();
         let content_creator_account = &mut ctx.accounts.user_details;
         content_creator_account.user_uuid = profile_info;
         content_creator_account.authority = ctx.accounts.user.key();
         content_creator_account.message_num = 0;
         Ok(())
     }
-
 
     // This function:
     //  - Sends a message from a non user to a user who has created an account
@@ -45,94 +42,104 @@ pub mod anchor_message_payment {
     //    iterates global state values
 
     pub fn send_message(
-    ctx: Context<SendMessage>,
-    message_uuid: String,
-    message: String,
-    amount_of_lamports: u64,
+        ctx: Context<SendMessage>,
+        message_uuid: String,
+        message: String,
+        amount_of_lamports: u64,
     ) -> Result<()> {
+        let amount = amount_of_lamports;
+        msg!("The amount variable is set to {:?}", amount);
+        let fee = (amount * 15) / 100;
+        msg!("The fee variable is set to {:?}", fee);
+        let to_recipient_pending = amount - fee;
+        msg!(
+            "The to_recipient_pending variable is set to {:?}",
+            to_recipient_pending
+        );
 
-    let amount = amount_of_lamports;
-    msg!("The amount variable is set to {:?}", amount);
-    let fee = (amount * 15) / 100;
-    msg!("The fee variable is set to {:?}", fee);
-    let to_recipient_pending = amount - fee;
-    msg!("The to_recipient_pending variable is set to {:?}", to_recipient_pending);
+        // Fee account stuff
+        // let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
+        // fee_account_pubkey can be set in the env file but the "send_message" test in the test file will fail
+        let fee_account_pubkey = "57wSCd1xLp1v9NyfJtaV2qyv3hxsU7JHnjDNyMcwsLTC";
+        // hard coding like above prevents the test failure
 
-    // Fee account stuff
-    // let fee_account_pubkey = env::var("FEE_ACCOUNT_PUBKEY").expect("Expected FEE_ACCOUNT_PUBKEY to be set in .env file");
-    // fee_account_pubkey can be set in the env file but the "send_message" test in the test file will fail
-    let fee_account_pubkey = "YOUR FEE ACCOUNT PUBKEY";
-    // hard coding like above prevents the test failure
+        // Check to ensure the fee_account has the correct pubkey and was not changed on client side
+        require!(
+            ctx.accounts.fee_account.key()
+                == Pubkey::from_str(&fee_account_pubkey)
+                    .expect("Invalid str passed to create pubkey"),
+            CustomError::IncorrectFeeAccount
+        );
 
-    // Check to ensure the fee_account has the correct pubkey and was not changed on client side
-    require!(
-        ctx.accounts.fee_account.key() == Pubkey::from_str(&fee_account_pubkey).expect("Invalid str passed to create pubkey"),
-        CustomError::IncorrectFeeAccount     
-    );
+        // Create Fee Transfer Instructions fee to the dApp's fee account using the hardcoded public key
+        let transfer_fee_instruction = system_instruction::transfer(
+            &ctx.accounts.message_sender.key(),
+            &ctx.accounts.fee_account.key(),
+            fee,
+        );
 
-    // Create Fee Transfer Instructions fee to the dApp's fee account using the hardcoded public key
-    let transfer_fee_instruction = system_instruction::transfer(
-        &ctx.accounts.message_sender.key(),
-        &ctx.accounts.fee_account.key(),
-        fee,
-    );
+        // Preform Transfer of fee to the dApp's fee account
+        invoke(
+            &transfer_fee_instruction,
+            &[
+                ctx.accounts.message_sender.to_account_info().clone(),
+                ctx.accounts.fee_account.to_account_info().clone(),
+            ],
+        )
+        .map_err(|_| CustomError::FeeTransferFailed)?;
 
-    // Preform Transfer of fee to the dApp's fee account
-    invoke(
-        &transfer_fee_instruction,
-        &[
-            ctx.accounts.message_sender.to_account_info().clone(),
-            ctx.accounts.fee_account.to_account_info().clone(),
-        ],
-    ).map_err(|_| CustomError::FeeTransferFailed)?;
+        // recipient_pending
 
-    // recipient_pending
+        // Transfer remaining amount to the recipient's pda pending account
+        invoke(
+            &system_instruction::transfer(
+                //instruction to transfer SOL from one account to another
+                &ctx.accounts.message_sender.key(), //Account sol will be deducted from
+                &ctx.accounts.message_recipient_pending_account.key(), // Public key of the recipient account
+                to_recipient_pending, // Amount of SOL to transfer - Message amount minus fee
+            ),
+            &[
+                ctx.accounts.message_sender.to_account_info().clone(),
+                ctx.accounts
+                    .message_recipient_pending_account
+                    .to_account_info()
+                    .clone(),
+            ],
+        )
+        .map_err(|_| CustomError::RecipientTransferFailed)?;
 
-    // Transfer remaining amount to the recipient's pda pending account
-    invoke(
-        &system_instruction::transfer( //instruction to transfer SOL from one account to another
-            &ctx.accounts.message_sender.key(), //Account sol will be deducted from
-            &ctx.accounts.message_recipient_pending_account.key(), // Public key of the recipient account
-            to_recipient_pending, // Amount of SOL to transfer - Message amount minus fee
-        ),
-        &[
-            ctx.accounts.message_sender.to_account_info().clone(),
-            ctx.accounts.message_recipient_pending_account.to_account_info().clone(),
-        ],
-    ).map_err(|_| CustomError::RecipientTransferFailed)?;
+        // Save the message with the uuid and payment details
+        let message_account = &mut ctx.accounts.message_account;
+        message_account.uuid = message_uuid;
+        message_account.message = message;
+        message_account.sender = ctx.accounts.message_sender.key();
+        message_account.recipient = ctx.accounts.user_details.authority; //TODO - ensure below is in lamports the correct number of units
+        message_account.lamports = amount; // Or save the original 'amount' if preferred add extra fields for fees and then net
+        message_account.read = false;
 
-    // Save the message with the uuid and payment details
-    let message_account = &mut ctx.accounts.message_account;
-    message_account.uuid = message_uuid;
-    message_account.message = message;
-    message_account.sender = ctx.accounts.message_sender.key();
-    message_account.recipient = ctx.accounts.user_details.authority; //TODO - ensure below is in lamports the correct number of units
-    message_account.lamports = amount; // Or save the original 'amount' if preferred add extra fields for fees and then net
-    message_account.read = false;
+        // update the user message count
+        let message_recipient = &mut ctx.accounts.user_details;
+        message_recipient.message_num += 1;
 
-    // update the user message count
-    let message_recipient = &mut ctx.accounts.user_details;
-    message_recipient.message_num += 1;
+        // update global state
+        let global_state = &mut ctx.accounts.global_state;
+        global_state.total_amount_sol_transacted += amount;
 
-    // update global state
-    let global_state = &mut ctx.accounts.global_state;
-    global_state.total_amount_sol_transacted += amount;
-
-    Ok(())
+        Ok(())
     }
 
-
-    // This function: 
+    // This function:
     //  - Allows a message recipient to mark as message as read
     //  - transfers the funds from the recipient_pending to the
     //  - users wallet
 
-    pub fn mark_message_as_read(
-        ctx: Context<MarkMessageAsRead>,
-    ) -> Result<()> {
+    pub fn mark_message_as_read(ctx: Context<MarkMessageAsRead>) -> Result<()> {
         let message_account = &mut ctx.accounts.message_account;
 
-        msg!("The message_account.read at the beginning of the function is: {:?}", message_account.read);
+        msg!(
+            "The message_account.read at the beginning of the function is: {:?}",
+            message_account.read
+        );
 
         // Verify the content creator is the recipient of the message
         require!(
@@ -141,26 +148,26 @@ pub mod anchor_message_payment {
         );
 
         // Check if the message has already been marked as read
-        require!(
-            !message_account.read,
-            CustomError::MessageAlreadyRead
-        );
+        require!(!message_account.read, CustomError::MessageAlreadyRead);
 
         let transfer_amount = ctx.accounts.recipient_pending.get_lamports();
 
-        ctx.accounts.recipient_pending.sub_lamports(transfer_amount)?;
-        ctx.accounts.message_recipient.add_lamports(transfer_amount)?;
+        ctx.accounts
+            .recipient_pending
+            .sub_lamports(transfer_amount)?;
+        ctx.accounts
+            .message_recipient
+            .add_lamports(transfer_amount)?;
 
         // Mark the message as read
         message_account.read = true.to_owned();
         Ok(())
     }
-
 }
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-     #[account(init, payer = dapp_creator, space = 8 + 8, seeds = [b"global_state"], bump)]
+    #[account(init, payer = dapp_creator, space = 8 + 8, seeds = [b"global_state"], bump)]
     pub global_state: Account<'info, GlobalState>,
     #[account(mut)]
     pub dapp_creator: Signer<'info>, //dApp will pay for the rent the message sender will pay for transaction costs
@@ -223,7 +230,7 @@ pub struct MessageAccount {
 // TODO - Delete this
 #[account]
 pub struct MessageUUID {
-    pub message_uuid: String
+    pub message_uuid: String,
 }
 
 #[derive(Accounts)]
@@ -248,8 +255,7 @@ pub enum CustomError {
     #[msg("Incorrect fee account PubKey.")]
     IncorrectFeeAccount,
     #[msg("Failed to transfer fee to the dApp's fee account.")]
-    FeeTransferFailed,    
+    FeeTransferFailed,
     #[msg("Failed to transfer remaining amount to the recipient's pending account.")]
     RecipientTransferFailed,
 }
-
