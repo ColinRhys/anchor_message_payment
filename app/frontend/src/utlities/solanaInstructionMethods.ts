@@ -95,14 +95,11 @@ export const sendMessageToUser = async (
   amountOfLamportsString: string,
 ): Promise<string> => {
   const { slicedUUID, uuid } = generateSlicedUUID();
-  console.log("the amountOfLamports passed in is: ", amountOfLamportsString);
 
   const messageRecipientPendingAccountSeeds = [
     Buffer.from("temp_sol"),
     Buffer.from(slicedUUID),
   ];
-
-  console.log("The messageRecipientUUID is: ", messageRecipientUUID);
 
   const userDetailSeeds = [
     Buffer.from("user_details"),
@@ -114,7 +111,6 @@ export const sendMessageToUser = async (
   const globalStateAccountSeeds = [Buffer.from("global_state")];
 
   const walletPubKey = wallet.publicKey;
-  console.log("The wallet wallet.publickey from the payer is: ", walletPubKey);
 
   // lamport stuff
 
