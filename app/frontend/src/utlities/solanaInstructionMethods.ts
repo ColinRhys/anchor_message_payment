@@ -126,13 +126,6 @@ export const sendMessageToUser = async (
 
   const convertedLamportsNumber = Number(convertedLamports);
 
-  console.log(
-    "The converted number passed to solana method is: ",
-    convertedLamportsNumber,
-  );
-
-  console.log("The converted lamports field is: ", convertedLamports);
-
   try {
     const messageRecipientPendingAccountResult = await findPDA(
       messageRecipientPendingAccountSeeds,
@@ -213,12 +206,6 @@ export const markMessageAsRead = async (
       messageRecipientSeeds,
       program.programId,
     );
-    console.log("The messageAccountPDA.pda is: ", messageAccountPDA.pda);
-    console.log(
-      "The messageRecipientPda.pda is: ",
-      messageRecipientPda.pda?.toString,
-    );
-    console.log("The wallet pubkey is: ", wallet.publicKey);
     if (messageAccountPDA.pda && messageRecipientPda.pda) {
       const txSignature = await program.methods
         .markMessageAsRead()
