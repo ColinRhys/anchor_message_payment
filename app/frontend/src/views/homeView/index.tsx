@@ -31,6 +31,7 @@ export const HomeView: FC = ({}) => {
 
   return (
     <div>
+      <br></br>
       <center>
         <h1>Home Page Here</h1>
       </center>
@@ -44,34 +45,45 @@ export const HomeView: FC = ({}) => {
           <p>In state memory for an example</p>
         </center>
       </div>
+      <br></br>
 
       {/* The in memory data stuff */}
       <center>
         <div>
           <div>Message PDA's</div>
           <ul>
-            {messagePDAsList.map((messagePDA, index) => (
-              <li key={index}>
-                {messagePDA}
-                <CopyButton valueToCopy={messagePDA} label="Copy Message PDA" />
-              </li>
-            ))}
+            {messagePDAsList.length > 0 ? (
+              messagePDAsList.map((messagePDA, index) => (
+                <li key={index}>
+                  {messagePDA}
+                  <CopyButton valueToCopy={messagePDA} label="Copy Message PDA" />
+                </li>
+              ))
+            ) : (
+              <li>No Message PDAs available.</li>
+            )}
           </ul>
+          <br></br>
           <div>User UUID's</div>
           <ul>
-            {userUUIDsList.map((userUUID, index) => (
-              <li key={index}>
-                {userUUID}
-                <CopyButton valueToCopy={userUUID} label="Copy User UUID" />
-              </li>
-            ))}
+            {userUUIDsList.length > 0 ? (
+              userUUIDsList.map((userUUID, index) => (
+                <li key={index}>
+                  {userUUID}
+                  <CopyButton valueToCopy={userUUID} label="Copy User UUID" />
+                </li>
+              ))
+            ) : (
+              <li>No User UUIDs available.</li>
+            )}
           </ul>
+          <br></br>
         </div>
       </center>
 
       {/* Wallet Stuff */}
       <center>
-        <h1>The "WalletMultiButton"</h1>
+        <h1>1. Connect your wallet</h1>
       </center>
       <br></br>
       <center>
@@ -81,7 +93,7 @@ export const HomeView: FC = ({}) => {
       {/* Initialize Function */}
       <br></br>
       <center>
-        <h1>Initialize Function</h1>
+        <h1>2. Initialize the dApp</h1>
       </center>
       <br></br>
       <center>
@@ -91,7 +103,7 @@ export const HomeView: FC = ({}) => {
       {/* The create profile instruction */}
       <br></br>
       <center>
-        <h1>Create Profile</h1>
+        <h1>3. Create Profile - that will receive messages</h1>
       </center>
       <br></br>
       <br></br>
@@ -105,7 +117,7 @@ export const HomeView: FC = ({}) => {
       {/* Send Message Function */}
       <br></br>
       <center>
-        <h1>Send Message</h1>
+        <h1>4. Send a Message to the User you Created</h1>
       </center>
       <br></br>
       <br></br>
@@ -119,7 +131,7 @@ export const HomeView: FC = ({}) => {
       {/* Read Message Functionality */}
       <br></br>
       <center>
-        <h1>Read Messages</h1>
+        <h1>5. Read Message a Message and Get Paid</h1>
       </center>
       <br></br>
       <br></br>
@@ -130,8 +142,13 @@ export const HomeView: FC = ({}) => {
       {/* To another page */}
       <br></br>
       <Link href="/otherPage">
-        <center>To Other Page</center>
+        <center>
+          <button className="btn btn-secondary">
+            To Other Page
+          </button>
+        </center>
       </Link>
+      <br></br>
     </div>
   );
 };

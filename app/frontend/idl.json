@@ -139,54 +139,6 @@
       }
     },
     {
-      "name": "MessageAccount",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "uuid",
-            "type": "string"
-          },
-          {
-            "name": "message",
-            "type": "string"
-          },
-          {
-            "name": "sender",
-            "type": "publicKey"
-          },
-          {
-            "name": "recipient",
-            "type": "publicKey"
-          },
-          {
-            "name": "lamports",
-            "type": "u64"
-          },
-          {
-            "name": "read",
-            "type": "bool"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "MessageUUID",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "messageUuid",
-            "type": "string"
-          }
-        ]
-      }
-    },
-    {
       "name": "UserDetails",
       "type": {
         "kind": "struct",
@@ -202,6 +154,50 @@
           {
             "name": "messageNum",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lamports",
+            "type": "u64"
+          },
+          {
+            "name": "read",
+            "type": "bool"
+          },
+          {
+            "name": "sender",
+            "type": "publicKey"
+          },
+          {
+            "name": "recipient",
+            "type": "publicKey"
+          },
+          {
+            "name": "uuid",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MessageUUID",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "messageUuid",
+            "type": "string"
           }
         ]
       }
@@ -224,6 +220,21 @@
       "code": 6001,
       "name": "MessageAlreadyRead",
       "msg": "The message has already been read."
+    },
+    {
+      "code": 6002,
+      "name": "IncorrectFeeAccount",
+      "msg": "Incorrect fee account PubKey."
+    },
+    {
+      "code": 6003,
+      "name": "FeeTransferFailed",
+      "msg": "Failed to transfer fee to the dApp's fee account."
+    },
+    {
+      "code": 6004,
+      "name": "RecipientTransferFailed",
+      "msg": "Failed to transfer remaining amount to the recipient's pending account."
     }
   ],
   "metadata": {

@@ -28,11 +28,23 @@ const CreateProfileComponent: React.FC<CreateProfileComponentProps> = ({
   };
 
   return (
-    <div>
-      <button onClick={createContentCreatorAccountFunction}>
-        Create Account
-      </button>
-    </div>
+    <>
+      <div>
+        <p>
+          This will use the wallet connected to the app currently
+        </p>
+      </div>
+      <div>
+        <p>
+          This wallet will be where read message funds go on "read"
+        </p>
+      </div>
+      <div>
+        <button className="btn btn-success" onClick={createContentCreatorAccountFunction}>
+          Create Account
+        </button>
+      </div>
+    </>
   );
 };
 

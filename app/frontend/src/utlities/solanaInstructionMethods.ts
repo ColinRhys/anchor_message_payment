@@ -1,16 +1,16 @@
 // solanaInstructionMethods.ts
+// These are the client side calls to the onchain instructions created in
+// the smart contract in the anchor side
 import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { Wallet } from "@solana/wallet-adapter-react";
 import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
 
 // Export a function to initialize the program
 export const initializeProgram = async (
   program: anchor.Program<anchor.Idl>,
   wallet: Wallet,
 ) => {
-  const walletPubKey = wallet.adapter.publicKey;
 
   const [globalStatePublicKey, globalStateBump] =
     await PublicKey.findProgramAddressSync(
@@ -18,16 +18,20 @@ export const initializeProgram = async (
       program.programId,
     );
 
-  if (walletPubKey) {
+  if (wallet.adapter.publicKey) {
     try {
       const txSignature = await program.methods
         .initialize()
         .accounts({
           globalState: globalStatePublicKey,
-          dappCreator: walletPubKey,
+          dappCreator: wallet.adapter.publicKey,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
-        .rpc();
+        .rpc()
+        console.log(
+          "Initialized program successfully. Transaction signature:",
+          txSignature
+        );
     } catch (error) {
       console.error("Failed to initialize the program:", error);
     }
@@ -145,6 +149,10 @@ export const sendMessageToUser = async (
       messageAccountResult.pda &&
       globalStateAccountResult.pda
     ) {
+      console.log(
+        "the globalStateAccountResult.pda: ",
+        globalStateAccountResult.pda.toString()
+      );
       const txSignature = await program.methods
         .sendMessage(
           slicedUUID,
@@ -240,7 +248,6 @@ const findPDA = async (
       seeds,
       programID,
     );
-    console.log(`PDA: ${pda.toString()}, Bump: ${bump}`);
     return { pda, bump };
   } catch (error) {
     console.error("Error finding PDA:", error);
