@@ -2,6 +2,7 @@ import { initializeWorkspace } from "@/utlities/providerHelper";
 import { initializeProgram } from "@/utlities/solanaInstructionMethods";
 import { WalletAdapter } from "@/utlities/solanaWalletAdaptor";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface InitializeComponentProps {
   walletContext: WalletContextState;
@@ -25,7 +26,7 @@ const InitializeComponent: React.FC<InitializeComponentProps> = ({
 
   return (
     <center>
-      <button onClick={initializeFunction}>Initialize</button>
+      <button className="btn btn-primary" onClick={initializeFunction}>Initialize</button>
     </center>
   );
 };

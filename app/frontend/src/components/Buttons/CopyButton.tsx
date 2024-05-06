@@ -24,7 +24,7 @@ const CopyButton = ({ valueToCopy, label }: CopyButtonProps) => {
 
   return (
     <div>
-      <button onClick={handleCopy}>{label}</button>
+      <button className="btn btn-secondary" onClick={handleCopy}>{label}</button>
       {copyStatus && <p>{copyStatus}</p>}
     </div>
   );

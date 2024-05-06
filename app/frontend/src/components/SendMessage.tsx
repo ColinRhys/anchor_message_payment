@@ -39,39 +39,52 @@ const SendUserMessage: React.FC<SendUserMessageProps> = ({
   };
 
   return (
-    <form onSubmit={sendMessageFunction}>
-      <div>
-        <label htmlFor="creatorUUID">Creator UUID:</label>
-        <input
-          type="text"
-          id="creatorUUID"
-          value={creatorUUID}
-          onChange={(e) => setCreatorUUID(e.target.value)}
-          required
-        />
+    <>
+    <div>
+      <p>
+        After creating a user a user uuid will show up at top of screen can use to copy and past to send a message to that user
+      </p>
+    </div>
+    <form onSubmit={sendMessageFunction} className="container mt-3">
+      <div className="row justify-content-center">
+        <div className="col-lg-4">
+          <div className="mb-3">
+            <label htmlFor="creatorUUID" className="form-label">Creator UUID:</label>
+            <input
+              type="text"
+              className="form-control"
+              id="creatorUUID"
+              value={creatorUUID}
+              onChange={(e) => setCreatorUUID(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="messageContent" className="form-label">Message Content:</label>
+            <textarea
+              className="form-control"
+              id="messageContent"
+              value={messageContent}
+              onChange={(e) => setMessageContent(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="amountOfSol" className="form-label">Amount of SOL:</label>
+            <input
+              type="text"
+              className="form-control"
+              id="amountOfSol"
+              value={amountOfSol}
+              onChange={(e) => setAmountOfSol(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary">Send Message</button>
+        </div>
       </div>
-      <div>
-        <label htmlFor="messageContent">Message Content:</label>
-        <textarea
-          id="messageContent"
-          value={messageContent}
-          onChange={(e) => setMessageContent(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="amountOfSol">Amount of SOL:</label>
-        <input
-          type="text"
-          id="amountOfSol"
-          value={amountOfSol} // Convert BigInt to string for the input value
-          onChange={(e) => setAmountOfSol(e.target.value)} // Convert string to BigInt
-          required
-        />
-      </div>
-      <br></br>
-      <button type="submit">Send Message</button>
     </form>
+    </>
   );
 };
 

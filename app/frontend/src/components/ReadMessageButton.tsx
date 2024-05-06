@@ -26,7 +26,7 @@ const ReadMessageButton: React.FC<ReadMessageButtonProps> = ({
   };
 
   return (
-    <button onClick={markMessageAsReadFunction}>Mark Message as Read</button>
+    <button className="btn btn-success" onClick={markMessageAsReadFunction}>Mark Message as Read</button>
   );
 };
 

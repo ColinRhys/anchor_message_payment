@@ -7,6 +7,9 @@ import {
 } from "@solana/web3.js";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
+// This file exists to make the different "wallet" types compatible
+// get payer is not fully implemented due to not needing it
+
 export class WalletAdapter implements Wallet {
   private walletState: WalletContextState;
 
@@ -43,8 +46,6 @@ export class WalletAdapter implements Wallet {
   }
 
   // The 'payer' property should be handled according to your application's logic
-  // In the original `NodeWallet`, payer is a `Keypair`, which would not be exposed in a browser environment
-  // You may omit this if not applicable, or handle it differently based on your wallet's implementation
   get payer(): Keypair {
     // Placeholder: replace with actual logic to retrieve Keypair if necessary
     return new Keypair();
